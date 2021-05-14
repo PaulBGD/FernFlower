@@ -74,7 +74,7 @@ public class ArrayExprent extends Exprent {
     VarType arrType = array.getExprType();
     if (arrType.arrayDim == 0) {
       VarType objArr = VarType.VARTYPE_OBJECT.resizeArrayDim(1); // type family does not change
-      res.enclose("((" + ExprProcessor.getCastTypeName(objArr) + ")", ")");
+      res.enclose("((" + ExprProcessor.getCastTypeName(objArr) + ") ", ")");
     }
 
     tracer.addMapping(bytecode);

@@ -139,7 +139,7 @@ public class AssignmentExprent extends Exprent {
         res.enclose("(", ")");
       }
 
-      res.prepend("(" + ExprProcessor.getCastTypeName(leftType) + ")");
+      res.prepend("(" + ExprProcessor.getCastTypeName(leftType) + ") ");
     }
 
     buffer.append(condType == CONDITION_NONE ? " = " : OPERATORS[condType]).append(res);

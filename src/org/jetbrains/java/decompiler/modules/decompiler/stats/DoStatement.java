@@ -90,7 +90,7 @@ public final class DoStatement extends Statement {
 
     switch (looptype) {
       case LOOP_DO:
-        buf.appendIndent(indent).append("while(true) {").appendLineSeparator();
+        buf.appendIndent(indent).append("while (true) {").appendLineSeparator();
         tracer.incrementCurrentSourceLine();
         buf.append(ExprProcessor.jmpWrapper(first, indent + 1, false, tracer));
         buf.appendIndent(indent).append("}").appendLineSeparator();
@@ -104,14 +104,14 @@ public final class DoStatement extends Statement {
         tracer.incrementCurrentSourceLine();
         break;
       case LOOP_WHILE:
-        buf.appendIndent(indent).append("while(").append(conditionExprent.get(0).toJava(indent, tracer)).append(") {").appendLineSeparator();
+        buf.appendIndent(indent).append("while (").append(conditionExprent.get(0).toJava(indent, tracer)).append(") {").appendLineSeparator();
         tracer.incrementCurrentSourceLine();
         buf.append(ExprProcessor.jmpWrapper(first, indent + 1, false, tracer));
         buf.appendIndent(indent).append("}").appendLineSeparator();
         tracer.incrementCurrentSourceLine();
         break;
       case LOOP_FOR:
-        buf.appendIndent(indent).append("for(");
+        buf.appendIndent(indent).append("for (");
         if (initExprent.get(0) != null) {
           buf.append(initExprent.get(0).toJava(indent, tracer));
         }

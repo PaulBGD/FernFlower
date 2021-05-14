@@ -897,7 +897,7 @@ public class ExprProcessor implements CodeConstants {
       }
     }
 
-    if (cast) buffer.append('(').append(getCastTypeName(leftType)).append(')');
+    if (cast) buffer.append("(").append(getCastTypeName(leftType)).append(") ");
 
     if (quote) buffer.append('(');
 
