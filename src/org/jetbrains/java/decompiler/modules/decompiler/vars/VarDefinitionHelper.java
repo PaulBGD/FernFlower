@@ -54,7 +54,7 @@ public class VarDefinitionHelper {
     int varindex = 0;
     for (int i = 0; i < paramcount; i++) {
       implDefVars.add(varindex);
-      varproc.setVarName(new VarVersionPair(varindex, 0), vc.getFreeName(varindex));
+      varproc.setBestName(new VarVersionPair(varindex, 0));
 
       if (thisvar) {
         if (i == 0) {
@@ -95,7 +95,7 @@ public class VarDefinitionHelper {
       if (lstVars != null) {
         for (VarExprent var : lstVars) {
           implDefVars.add(var.getIndex());
-          varproc.setVarName(new VarVersionPair(var), vc.getFreeName(var.getIndex()));
+          varproc.setBestName(new VarVersionPair(var));
           var.setDefinition(true);
         }
       }
@@ -119,7 +119,7 @@ public class VarDefinitionHelper {
         continue;
       }
 
-      varproc.setVarName(new VarVersionPair(index.intValue(), 0), vc.getFreeName(index));
+      varproc.setBestName(new VarVersionPair(index.intValue(), 0));
 
       // special case for
       if (stat.type == Statement.TYPE_DO) {

@@ -35,6 +35,7 @@ public interface IFernflowerPreferences {
   String IGNORE_INVALID_BYTECODE = "iib";
   String VERIFY_ANONYMOUS_CLASSES = "vac";
   String THREADS = "thr";
+  String RENAME_TYPES = "rnt";
 
   String LOG_LEVEL = "log";
   String MAX_PROCESSING_METHOD = "mpm";
@@ -91,6 +92,7 @@ public interface IFernflowerPreferences {
     defaults.put(UNIT_TEST_MODE, "0");
     defaults.put(DUMP_ORIGINAL_LINES, "0");
     defaults.put(THREADS, "AUTO");
+    defaults.put(RENAME_TYPES, "0");
 
     return Collections.unmodifiableMap(defaults);
   }
