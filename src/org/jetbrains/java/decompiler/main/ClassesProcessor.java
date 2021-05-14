@@ -34,7 +34,7 @@ public class ClassesProcessor implements CodeConstants {
   public static final int AVERAGE_CLASS_SIZE = 16 * 1024;
 
   private final StructContext context;
-  private final Map<String, ClassNode> mapRootClasses = new HashMap<>();
+  private final Map<String, ClassNode> mapRootClasses = Collections.synchronizedMap(new HashMap<>());
 
   private static class Inner {
     private String simpleName;
@@ -296,7 +296,7 @@ public class ClassesProcessor implements CodeConstants {
     return true;
   }
 
-  public void writeClass(StructClass cl, TextBuffer buffer) throws IOException {
+  public void processClass(StructClass cl) throws IOException {
     ClassNode root = mapRootClasses.get(cl.qualifiedName);
     if (root.type != ClassNode.CLASS_ROOT) {
       return;
@@ -305,25 +305,12 @@ public class ClassesProcessor implements CodeConstants {
     boolean packageInfo = cl.isSynthetic() && "package-info".equals(root.simpleName);
     boolean moduleInfo = cl.hasModifier(CodeConstants.ACC_MODULE) && cl.hasAttribute(StructGeneralAttribute.ATTRIBUTE_MODULE);
 
-    DecompilerContext.getLogger().startReadingClass(cl.qualifiedName);
-    try {
+    DecompilerContext.getLogger().startProcessingClass(cl.qualifiedName);
+    {
       ImportCollector importCollector = new ImportCollector(root);
       DecompilerContext.startClass(importCollector);
 
-      if (packageInfo) {
-        ClassWriter.packageInfoToJava(cl, buffer);
-
-        importCollector.writeImports(buffer, false);
-      }
-      else if (moduleInfo) {
-        TextBuffer moduleBuffer = new TextBuffer(AVERAGE_CLASS_SIZE);
-        ClassWriter.moduleInfoToJava(cl, moduleBuffer);
-
-        importCollector.writeImports(buffer, true);
-
-        buffer.append(moduleBuffer);
-      }
-      else {
+      if (!packageInfo && !moduleInfo) {
         new LambdaProcessor().processClass(root);
 
         // add simple class names to implicit import
@@ -335,7 +322,36 @@ public class ClassesProcessor implements CodeConstants {
         new NestedClassProcessor().processClass(root, root);
 
         new NestedMemberAccess().propagateMemberAccess(root);
+      }
 
+      DecompilerContext.getLogger().endProcessingClass();
+    }
+  }
+
+  public void writeClass(StructClass cl, TextBuffer buffer) throws IOException {
+    ClassNode root = mapRootClasses.get(cl.qualifiedName);
+    if (root.type != ClassNode.CLASS_ROOT) {
+      return;
+    }
+
+    boolean packageInfo = cl.isSynthetic() && "package-info".equals(root.simpleName);
+    boolean moduleInfo = cl.hasModifier(CodeConstants.ACC_MODULE) && cl.hasAttribute(StructGeneralAttribute.ATTRIBUTE_MODULE);
+    DecompilerContext.getLogger().startReadingClass(cl.qualifiedName);
+    try {
+      if (packageInfo) {
+        ClassWriter.packageInfoToJava(cl, buffer);
+
+        DecompilerContext.getImportCollector().writeImports(buffer, false);
+      }
+      else if (moduleInfo) {
+        TextBuffer moduleBuffer = new TextBuffer(AVERAGE_CLASS_SIZE);
+        ClassWriter.moduleInfoToJava(cl, moduleBuffer);
+
+        DecompilerContext.getImportCollector().writeImports(buffer, true);
+
+        buffer.append(moduleBuffer);
+      }
+      else {
         TextBuffer classBuffer = new TextBuffer(AVERAGE_CLASS_SIZE);
         new ClassWriter().classToJava(root, classBuffer, 0, null);
 
@@ -345,7 +361,7 @@ public class ClassesProcessor implements CodeConstants {
           buffer.append("package ").append(packageName).append(';').appendLineSeparator().appendLineSeparator();
         }
 
-        importCollector.writeImports(buffer, true);
+        DecompilerContext.getImportCollector().writeImports(buffer, true);
 
         int offsetLines = buffer.countLines();
 

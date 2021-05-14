@@ -34,6 +34,7 @@ public interface IFernflowerPreferences {
   String BYTECODE_SOURCE_MAPPING = "bsm";
   String IGNORE_INVALID_BYTECODE = "iib";
   String VERIFY_ANONYMOUS_CLASSES = "vac";
+  String THREADS = "thr";
 
   String LOG_LEVEL = "log";
   String MAX_PROCESSING_METHOD = "mpm";
@@ -89,6 +90,7 @@ public interface IFernflowerPreferences {
     defaults.put(BANNER, "");
     defaults.put(UNIT_TEST_MODE, "0");
     defaults.put(DUMP_ORIGINAL_LINES, "0");
+    defaults.put(THREADS, "AUTO");
 
     return Collections.unmodifiableMap(defaults);
   }

@@ -5,6 +5,7 @@ import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.Fernflower;
 import org.jetbrains.java.decompiler.main.extern.IBytecodeProvider;
 import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
+import org.jetbrains.java.decompiler.main.extern.IFernflowerPreferences;
 import org.jetbrains.java.decompiler.main.extern.IResultSaver;
 import org.jetbrains.java.decompiler.util.InterpreterUtil;
 
@@ -69,7 +70,7 @@ public class ConsoleDecompiler implements IBytecodeProvider, IResultSaver {
       return;
     }
 
-    PrintStreamLogger logger = new PrintStreamLogger(System.out);
+    IFernflowerLogger logger = new ThreadedPrintStreamLogger(System.out);
     ConsoleDecompiler decompiler = new ConsoleDecompiler(destination, mapOptions, logger);
 
     for (File library : libraries) {
@@ -104,7 +105,25 @@ public class ConsoleDecompiler implements IBytecodeProvider, IResultSaver {
 
   protected ConsoleDecompiler(File destination, Map<String, Object> options, IFernflowerLogger logger) {
     root = destination;
-    engine = new Fernflower(this, this, options, logger);
+
+    String thr = options != null ? (String) options.getOrDefault(IFernflowerPreferences.THREADS, "AUTO") : "AUTO";
+    int threads;
+    if ("AUTO".equals(thr)) {
+      threads = Runtime.getRuntime().availableProcessors();
+    } else {
+      try {
+        threads = Integer.parseInt(thr);
+      } catch (NumberFormatException e) {
+        throw new RuntimeException("Malformed threads option: " + thr);
+      }
+    }
+
+    IResultSaver saver = this;
+    if (threads > 1) {
+      saver = new ThreadSafeResultSaver(root);
+    }
+
+    engine = new Fernflower(this, saver, options, logger, threads);
   }
 
   public void addSource(File source) {

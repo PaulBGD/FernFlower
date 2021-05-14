@@ -10,6 +10,7 @@ import org.jetbrains.java.decompiler.modules.decompiler.vars.VarProcessor;
 import org.jetbrains.java.decompiler.modules.renamer.PoolInterceptor;
 import org.jetbrains.java.decompiler.struct.StructContext;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -24,12 +25,14 @@ public class DecompilerContext {
   private final StructContext structContext;
   private final ClassesProcessor classProcessor;
   private final PoolInterceptor poolInterceptor;
+  private final int threads;
   private ImportCollector importCollector;
   private VarProcessor varProcessor;
   private CounterContainer counterContainer;
   private BytecodeSourceMapper bytecodeSourceMapper;
 
   public DecompilerContext(Map<String, Object> properties,
+                           int threads,
                            IFernflowerLogger logger,
                            StructContext structContext,
                            ClassesProcessor classProcessor,
@@ -40,11 +43,23 @@ public class DecompilerContext {
     Objects.requireNonNull(classProcessor);
 
     this.properties = properties;
+    this.threads = threads;
     this.logger = logger;
     this.structContext = structContext;
     this.classProcessor = classProcessor;
     this.poolInterceptor = interceptor;
     this.counterContainer = new CounterContainer();
+  }
+
+  //Safe to not copy some of the fields.
+  @SuppressWarnings ("CopyConstructorMissesField")
+  private DecompilerContext(DecompilerContext other) {
+    this.properties = new HashMap<>(other.properties);
+    this.logger = other.logger;
+    this.structContext = other.structContext;
+    this.classProcessor = other.classProcessor;
+    this.poolInterceptor = other.poolInterceptor;
+    this.threads = other.threads;
   }
 
   // *****************************************************************************
@@ -59,6 +74,14 @@ public class DecompilerContext {
 
   public static void setCurrentContext(DecompilerContext context) {
     currentContext.set(context);
+  }
+
+  public static void cloneContext(DecompilerContext root) {
+    DecompilerContext current = getCurrentContext();
+    if (current == null) {
+      current = new DecompilerContext(root);
+      setCurrentContext(current);
+    }
   }
 
   public static void setProperty(String key, Object value) {
@@ -93,6 +116,10 @@ public class DecompilerContext {
   public static String getNewLineSeparator() {
     return getOption(IFernflowerPreferences.NEW_LINE_SEPARATOR) ?
            IFernflowerPreferences.LINE_SEPARATOR_UNX : IFernflowerPreferences.LINE_SEPARATOR_WIN;
+  }
+
+  public static int getThreads() {
+    return getCurrentContext().threads;
   }
 
   public static IFernflowerLogger getLogger() {
